@@ -39,7 +39,16 @@ namespace Dll2Sdk
 
             foreach (var module in modules)
             {
+                void GetNestedTypes(ref Stack<TypeDef> stack, IList<TypeDef> defs)
+                {
+                    foreach (var type in defs)
+                    {
+                        GetNestedTypes(ref stack, type.NestedTypes);
+                    }
+                }
+
                 var typesToUnNest = new Stack<TypeDef>();
+                //GetNestedTypes(ref typesToUnNest, module.Types);
                 foreach (var type in module.Types)
                 {
                     foreach (var nestedType in type.NestedTypes)
@@ -48,10 +57,13 @@ namespace Dll2Sdk
                     }
                 }
 
+                //var declaringTypes = new Dictionary<TypeDef, TypeDef>();
+
                 while (typesToUnNest.Count > 0)
                 {
                     var t = typesToUnNest.Pop();
                     var dt = t.DeclaringType;
+
 
                     if (!typeRefs.TryGetValue($"{t.DefinitionAssembly.Name}_{t.FullName}", out var l))
                     {
