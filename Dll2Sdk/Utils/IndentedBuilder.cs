@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Dll2Sdk.Utils
 {
     public class IndentedBuilder
     {
-        private Stack<int> _stack;
+        private readonly Stack<int> _stack = new Stack<int>();
         private int _tabCount;
-        private StringBuilder _builder = new StringBuilder();
+        private readonly StringBuilder _builder = new StringBuilder();
 
         public void Push()
         {
@@ -57,6 +58,6 @@ namespace Dll2Sdk.Utils
         
         public void Append(string str) => _builder.Append(str);
 
-        public override string ToString() => _builder.ToString();
+        public override string ToString() => _builder.ToString().Trim() + Environment.NewLine;
     }
 }

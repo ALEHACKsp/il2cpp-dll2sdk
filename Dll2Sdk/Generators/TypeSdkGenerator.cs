@@ -11,7 +11,7 @@ namespace Dll2Sdk.Generators
     {
         public TypeDef TypeDef;
         public string Namespace;
-        
+
         public void GenerateForwardTypeDefinition(IndentedBuilder builder)
         {
             builder.AppendIndented(TypeDef.TypeDefinitionStr());
@@ -105,7 +105,7 @@ namespace Dll2Sdk.Generators
                             builder.Outdent();
                             builder.AppendIndentedLine("};");
                         }
-                    } 
+                    }
                     builder.Outdent();
                     builder.AppendIndentedLine("};");
                 }
@@ -175,7 +175,10 @@ namespace Dll2Sdk.Generators
                 var rva = m.GetRva();
                 if (!m.HasGenericParameters && rva != null)
                 {
-                    builder.AppendIndentedLine(m.ImplementationStr(rva));
+                    var rst = m.ImplementationStr(rva).Replace("{" ,"\n{\n\t");
+                    rst = rst.Replace(";", ";\n\t");
+                    rst = rst.Replace("	 }", "}\n");
+                    builder.AppendIndentedLine(rst.Trim() + Environment.NewLine);
                 }
             }
         }

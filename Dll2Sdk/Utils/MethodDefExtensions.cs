@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dnlib.DotNet;
@@ -109,7 +109,11 @@ namespace Dll2Sdk.Utils
 
             builder.Append(method.DeclaringType.ToTypeSig().ParsedTypeSignatureStr(false));
             builder.Append("::");
-            builder.Append($"{method.Name.String.Parseable()}_{method.Rid}");
+            builder.Append($"{method.Name.String.Parseable()}");
+            if (!Program.Arguments.Clean)
+            {
+                builder.Append($"_{method.Rid}");
+            }
             builder.Append("(");
             builder.Append(method.ArgumentStr());
             builder.Append(")");
@@ -134,7 +138,11 @@ namespace Dll2Sdk.Utils
             
             builder.Append(method.ReturnType.ParsedReferenceTypeDefinition());
             builder.Append(" ");
-            builder.Append($"{method.Name.String.Parseable()}_{method.Rid}");
+            builder.Append($"{method.Name.String.Parseable()}");
+            if (!Program.Arguments.Clean)
+            {
+                builder.Append($"_{method.Rid}");
+            }
             builder.Append("(");
             builder.Append(method.ArgumentStr());
             builder.Append(")");

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,8 +14,7 @@ namespace Dll2Sdk
     {
         public SdkGenerator(ModuleDefMD module, IAssembly corlib)
         {
-            Console.WriteLine("generating types for: " + module); 
-
+            Console.WriteLine("Generating types for: " + module);
             var visitedTypes = new HashSet<TypeDef>();
             var toVisit = new Deque<TypeDef>();
 
@@ -40,13 +39,21 @@ namespace Dll2Sdk
                     if (ts != null && ts.IsValueType && !ts.IsPrimitive)
                     {
                         //Console.WriteLine(ts.FullName + " is non primitive and is struct?");
-                        foreach (var t2 in ts.UsedTypes())
+                        /*fix dump mscorlib && !ts.TypeName.Equals("TypeCode")*/
+                        if (ts.TypeName.Equals("TypeCode"))
                         {
-                            var tn = t2.GetNonNestedTypeRefScope().ResolveTypeDef();
-                            if (tn != null && tn != currentVisited && tn.DefinitionAssembly == module.Assembly && !visitedTypes.Contains(tn))
+                            //toVisit.AddToBack(ts.GetNonNestedTypeRefScope().ResolveTypeDef());
+                        }
+                        else
+                        {
+                            foreach (var t2 in ts.UsedTypes())
                             {
-                                canVisit = false;
-                                toVisit.AddToBack(tn);
+                                var tn = t2.GetNonNestedTypeRefScope().ResolveTypeDef();
+                                if (tn != null && tn != currentVisited && tn.DefinitionAssembly == module.Assembly && !visitedTypes.Contains(tn))
+                                {
+                                    canVisit = false;
+                                    toVisit.AddToBack(tn);
+                                }
                             }
                         }
                     }
@@ -166,7 +173,7 @@ namespace Dll2Sdk
                 generator.GenerateForwardTypeDefinition(forward);
             
                 forward.Outdent();
-                forward.AppendIndentedLine("}");
+                forward.AppendIndentedLine("}\n");
 
                 if (!generator.TypeDef.IsInterface)
                 {
@@ -180,29 +187,33 @@ namespace Dll2Sdk
                     generator.GenerateHeaderTypeDefinition(hdr);
             
                     hdr.Outdent();
-                    hdr.AppendIndentedLine("}");
+                    hdr.AppendIndentedLine("}\n");
                 }
 
                 generator.GenerateImplementation(file);
             }
 
             var name = module.Assembly.Name.String.Parseable();
-            var path = $"out/DLL2SDK/{name}";
-            Directory.CreateDirectory(path);
-            File.WriteAllText($"{path}/{name}.hpp", $@"//generated with dll2sdk
+            var path = $"{Program.Arguments.OutDirectory}";
+            Directory.CreateDirectory($"{path}/{name}");
+            File.WriteAllText($"{path}/{name}/{name}.hpp", $@"//generated with dll2sdk
 #pragma once
 #include ""..\dll2sdk_forward.g.hpp""
 {depBuilder}
 {hdr}");
-            File.WriteAllText($"{path}/{name}_forward.hpp", $@"//generated with dll2sdk
+
+            File.WriteAllText($"{path}/{name}/{name}_forward.hpp", $@"//generated with dll2sdk
 #pragma once
 #include ""..\dll2sdk_forward.g.hpp""
-{forward}
-");
-            File.WriteAllText($"{path}/{name}.cpp", $@"//generated with dll2sdk
+
+{forward}");
+
+            File.WriteAllText($"{path}/{name}/{name}.cpp", $@"//generated with dll2sdk
 #include ""{name}.hpp""
+
 {file}");
-            File.AppendAllText("out/DLL2SDK/dll2sdk_forward.g.hpp", $@"#include ""{name}\{name}_forward.hpp""
+
+            File.AppendAllText($"{path}/dll2sdk_forward.g.hpp", $@"#include ""{name}\{name}_forward.hpp""
 ");
         }
     }
