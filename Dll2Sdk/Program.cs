@@ -158,7 +158,7 @@ namespace DLL2SDK
             var corlib = modules.First(m => m.Name.Contains("mscorlib"));
             foreach (var dll in modules)
             {
-                new SdkGenerator(dll, corlib.Assembly, args);
+                new SdkGenerator(dll, corlib.Assembly);
             }
 
             var il2cpp = File.ReadAllText("il2cpp.h").Replace("bool thread_local;", "bool _thread_local;").Trim() + Environment.NewLine;

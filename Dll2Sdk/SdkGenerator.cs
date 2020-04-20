@@ -12,7 +12,7 @@ namespace Dll2Sdk
 {
     public class SdkGenerator
     {
-        public SdkGenerator(ModuleDefMD module, IAssembly corlib, string[] args)
+        public SdkGenerator(ModuleDefMD module, IAssembly corlib)
         {
             Console.WriteLine("Generating types for: " + module);
             var visitedTypes = new HashSet<TypeDef>();
