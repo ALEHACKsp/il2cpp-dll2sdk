@@ -7,6 +7,11 @@ find your il2cpp version, include the relevant bits from here:
 https://github.com/Perfare/Il2CppDumper/blob/master/Il2CppDumper/Outputs/HeaderConstants.cs
 then compile and you should be good to go
 
+# Usage
+```
+Dll2Sdk.exe --il2cppDumpFiles path_to_Il2CppDumper_Out --outPath path_to_out_sdk [--useForGitDiffs]
+```
+
 1. dump dummy dlls with il2cppdumper
 2. run dll2sdk with the folder as the first argument
 3. profit

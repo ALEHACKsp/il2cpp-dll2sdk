@@ -6,27 +6,24 @@ namespace Dll2Sdk.Utils
 {
     class Options
     {
-        [Option("dummyDllPath", Required = true, HelpText = "The path for resolving input file or directory dependancies.")]
-        public string DummyDllPath
+        [Option("il2cppDumpFiles", Required = true, HelpText = "The path for resolving input file or directory dependancies.")]
+        public string Il2cppDumpFiles
         {
             get;
             set;
         }
-
         [Option("outPath", Required = true, HelpText = "The path where all files will be written to.")]
         public string OutDirectory
         {
             get;
             set;
         }
-
-        [Option("clean", HelpText = "Remove method.Rid")]
-        public bool Clean
+        [Option("useForGitDiffs", HelpText = "Remove all variables for git comparison.")]
+        public bool UseForGitDiffs
         {
             get;
             set;
         }
-
         /* List of (absolute path) input filenames */
         [Value(0)]
         public IEnumerable<string> InputFileNames
@@ -34,7 +31,6 @@ namespace Dll2Sdk.Utils
             get;
             set;
         }
-
         [Usage(ApplicationAlias = "Dll2Sdk")]
         public static IEnumerable<Example> Examples
         {
@@ -42,7 +38,7 @@ namespace Dll2Sdk.Utils
             {
                 yield return new Example("Full usage", new Options()
                 {
-                    DummyDllPath = "Path to directory dummydll.",
+                    Il2cppDumpFiles = "Path to directory dummydll.",
                     OutDirectory = "Path to write generated files."
                 });
             }
