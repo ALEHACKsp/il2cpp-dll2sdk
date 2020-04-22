@@ -1,7 +1,5 @@
-﻿﻿using System;
-using System.Collections.Generic;
- using System.Globalization;
- using System.Linq;
+using System;
+using System.Linq;
 using Dll2Sdk.Utils;
 using dnlib.DotNet;
 
@@ -27,19 +25,16 @@ namespace Dll2Sdk.Generators
         public void GenerateHeaderTypeDefinition(IndentedBuilder builder)
         {
             builder.AppendIndented(TypeDef.TypeDefinitionStr());
-
             if (TypeDef.IsEnum)
             {
-                var tss = TypeDef.GetEnumUnderlyingType().ParsedTypeSignatureStr();
-                
+                string tss = TypeDef.GetEnumUnderlyingType().ParsedTypeSignatureStr();               
                 builder.Append(" : ");
                 builder.AppendLine(tss);
                 builder.AppendIndentedLine("{");
                 builder.Indent();
-
-                for (var index = 0; index < TypeDef.Fields.Count; index++)
+                for (int index = 0; index < TypeDef.Fields.Count; index++)
                 {
-                    var field = TypeDef.Fields[index];
+                    FieldDef field = TypeDef.Fields[index];
                     if (!field.IsSpecialName)
                     {
                         builder.AppendIndented($"{field.Name.String.Parseable()}_");
@@ -48,7 +43,6 @@ namespace Dll2Sdk.Generators
                             builder.Append(" = ");
                             builder.Append($"static_cast<{tss}>(0x{field.Constant.Value:X})");
                         }
-
                         if (index < TypeDef.Fields.Count - 1)
                         {
                             builder.AppendLine(",");
@@ -64,27 +58,23 @@ namespace Dll2Sdk.Generators
                     builder.Append(" : ");
                     builder.Append(TypeDef.BaseType?.ToTypeSig().ParsedTypeSignatureStr() ?? "DLL2SDK::Object");
                 }
-
                 builder.AppendNewLine();
                 builder.AppendIndentedLine("{");
-                builder.Indent();
-                
+                builder.Indent();              
                 if (TypeDef.HasNestedTypes)
                 {
-                    foreach (var type in TypeDef.NestedTypes)
+                    foreach (TypeDef type in TypeDef.NestedTypes)
                     {
                         new TypeSdkGenerator(type, Namespace).GenerateHeaderTypeDefinition(builder);
                     }
                 }
-
                 if (TypeDef.IsExplicitLayout)
                 {
                     builder.AppendIndentedLine("union");
                     builder.AppendIndentedLine("{");
                     builder.Indent();
-
-                    var i = 0;
-                    foreach (var field in TypeDef.Fields)
+                    int i = 0;
+                    foreach (FieldDef field in TypeDef.Fields)
                     {
                         if (!field.IsStatic)
                         {
@@ -92,7 +82,7 @@ namespace Dll2Sdk.Generators
                             builder.AppendIndentedLine("{");
                             builder.Indent();
                             //so in other news c++ sucks
-                            var offset = new System.ComponentModel.Int32Converter().ConvertFromString(field
+                            object offset = new System.ComponentModel.Int32Converter().ConvertFromString(field
                                 .CustomAttributes
                                 .First(a => a.TypeFullName.Contains("FieldOffset"))
                                 .GetNamedArgument("Offset", true).Value.ToString());
@@ -111,71 +101,62 @@ namespace Dll2Sdk.Generators
                 }
                 else
                 {
-                    foreach (var field in TypeDef.Fields)
+                    foreach (FieldDef field in TypeDef.Fields)
                     {
                         if (!field.IsStatic)
                         {
                             builder.AppendIndentedLine(field.ParsedTypeDefinitionStr());
                         }
-                    } 
+                    }
                 }
-
-                var staticFields = TypeDef.Fields.Where(f => f.IsStatic).ToArray();
+                FieldDef[] staticFields = TypeDef.Fields.Where(f => f.IsStatic).ToArray();
                 if (staticFields.Length > 0)
                 {
                     if (TypeDef.IsValueType)
                     {
                         builder.AppendIndentedLine("/* NOTE: structure has static fields; this is not yet supported.");
                     }
-                    
                     builder.AppendIndentedLine("struct StaticFields");
                     builder.AppendIndentedLine("{");
-                    builder.Indent();
-                    
-                    foreach (var field in staticFields)
+                    builder.Indent();                 
+                    foreach (FieldDef field in staticFields)
                     {
                         builder.AppendIndentedLine(field.ParsedTypeDefinitionStr());
                     }
-                   
                     builder.Outdent();
                     builder.AppendIndentedLine("};");
                     builder.AppendIndentedLine("StaticFields* GetStaticFields() { return reinterpret_cast<StaticFields*>(this->ClassPtr->StaticFieldsPtr); }");
-
                     if (TypeDef.IsValueType)
                     {
                         builder.AppendIndentedLine("*/");
                     }
                 }
             }
-
             if (TypeDef.HasMethods)
             {
-                var instancedMethods = TypeDef.Methods.Where(m => (!m.IsVirtual || !m.IsInterfacedMethod()) && !m.IsStatic).ToArray();
-                var staticMethods = TypeDef.Methods.Where(m => m.IsStatic && m.Name != "op_Explicit" && m.Name != "op_Implicit").ToArray();
-
-                foreach (var instancedMethod in instancedMethods)
+                MethodDef[] instancedMethods = TypeDef.Methods.Where(m => (!m.IsVirtual || !m.IsInterfacedMethod()) && !m.IsStatic).ToArray();
+                MethodDef[] staticMethods = TypeDef.Methods.Where(m => m.IsStatic && m.Name != "op_Explicit" && m.Name != "op_Implicit").ToArray();
+                foreach (MethodDef instancedMethod in instancedMethods)
                 {
                     builder.AppendIndentedLine(instancedMethod.DeclarationStr());
                 }
-                
-                foreach (var staticMethod in staticMethods)
+                foreach (MethodDef staticMethod in staticMethods)
                 {
                     builder.AppendIndentedLine(staticMethod.DeclarationStr());
                 }
             }
-            
             builder.Outdent();
             builder.AppendIndentedLine("};");
         }
 
         public void GenerateImplementation(IndentedBuilder builder)
         {
-            foreach (var m in TypeDef.Methods.Where(m => (!m.IsVirtual || !m.IsInterfacedMethod()) && m.Name != "op_Explicit" && m.Name != "op_Implicit"))
+            foreach (MethodDef m in TypeDef.Methods.Where(m => (!m.IsVirtual || !m.IsInterfacedMethod()) && m.Name != "op_Explicit" && m.Name != "op_Implicit"))
             {
-                var rva = m.GetRva();
+                object rva = m.GetRva();
                 if (!m.HasGenericParameters && rva != null)
                 {
-                    var rst = m.ImplementationStr(rva).Replace("{" ,"\n{\n\t");
+                    string rst = m.ImplementationStr(rva).Replace("{" ,"\n{\n\t");
                     rst = rst.Replace(";", ";\n\t");
                     rst = rst.Replace("	 }", "}\n");
                     builder.AppendIndentedLine(rst.Trim() + Environment.NewLine);
