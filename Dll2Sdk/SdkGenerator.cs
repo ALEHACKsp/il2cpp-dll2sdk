@@ -22,6 +22,8 @@ namespace Dll2Sdk
                 toVisit.AddToBack(type);
             }
             var inOrderGenerators = new List<TypeSdkGenerator>();
+            if (module.Name.Contains("mscorlib"))	
+                toVisit.AddToBack(module.Types.First(t => t.FullName == "System.Object"));
             while (toVisit.Count > 0)
             {
                 TypeDef currentVisited = toVisit.RemoveFromBack();
